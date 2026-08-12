@@ -10,7 +10,7 @@ class BedrockLLM:
     """
     def __init__(
         self,
-        model_id: str = "anthropic.claude-3-5-sonnet-20240620-v1:0",
+        model_id: str = "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
         region_name: str = "us-east-1",
         temperature: float = 0.2,
         max_tokens: int = 1000
