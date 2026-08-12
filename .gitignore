@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+
+# AWS & Environment Variables
+.env
+.env.local
+*.pem
+*.pub
+.aws/
+.aws-sam/
+
+# Mac / System
+.DS_Store
+Thumbs.db
+
+# IDE & Editor
+.vscode/
+.idea/
+.gemini/
