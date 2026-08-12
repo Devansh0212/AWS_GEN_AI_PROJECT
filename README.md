@@ -46,7 +46,7 @@ This repository contains the step-by-step hands-on implementation of an **Enterp
 - [x] Phase 3: Lambda Functions
 - [x] Phase 4: API Gateway Integration
 - [x] Phase 5: CloudWatch Observability
-- [ ] Phase 6: Amazon Bedrock Foundation Models
+- [x] Phase 6: Amazon Bedrock Foundation Models
 - [ ] Phase 7: First GenAI Endpoint
 - [ ] Phase 8: RAG Architecture
 - [ ] Phase 9: Bedrock Knowledge Bases & Vector Store
