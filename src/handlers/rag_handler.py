@@ -1,10 +1,11 @@
 import json
 import os
-import logging
+import sys
 
-# Configure logger
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+from src.utils.logger import get_logger
+
+logger = get_logger("rag_handler")
 
 def lambda_handler(event: dict, context) -> dict:
     """
