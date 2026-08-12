@@ -41,7 +41,7 @@ This repository contains the step-by-step hands-on implementation of an **Enterp
 ## 🚀 Progress Tracker
 
 - [x] Phase 0: Cloud Fundamentals & GenAI Context
-- [ ] Phase 1: AWS Account & Security Basics (IAM)
+- [x] Phase 1: AWS Account & Security Basics (IAM)
 - [ ] Phase 2: S3 Document Storage
 - [ ] Phase 3: Lambda Functions
 - [ ] Phase 4: API Gateway Integration
