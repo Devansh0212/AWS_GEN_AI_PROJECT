@@ -63,8 +63,9 @@ class APIGatewaySimulatorHandler(BaseHTTPRequestHandler):
             self.send_response(404)
             self.end_headers()
 
-def run_server(port=8000):
+def run_server(port=8080):
     server_address = ("", port)
+    HTTPServer.allow_reuse_address = True
     httpd = HTTPServer(server_address, APIGatewaySimulatorHandler)
     print(f"🚀 API Gateway Simulator running on http://localhost:{port}")
     print(f"   Available Routes:")

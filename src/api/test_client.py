@@ -2,7 +2,7 @@ import urllib.request
 import json
 import sys
 
-def test_api_gateway(question: str, url: str = "http://localhost:8000/ask"):
+def test_api_gateway(question: str, url: str = "http://localhost:8080/ask"):
     """
     Sends an HTTP POST request to the API Gateway endpoint.
     """
