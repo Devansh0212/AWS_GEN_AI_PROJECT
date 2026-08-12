@@ -4,19 +4,16 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from src.utils.logger import get_logger
+from src.rag.bedrock_llm import BedrockLLM
 
 logger = get_logger("rag_handler")
+
+# Instantiate Bedrock LLM wrapper
+llm_client = BedrockLLM()
 
 def lambda_handler(event: dict, context) -> dict:
     """
     AWS Lambda entry point for RAG Conversational Knowledge Assistant.
-    
-    Parameters:
-        event (dict): Incoming AWS event payload (from API Gateway, test events, etc.)
-        context (LambdaContext): AWS runtime metadata (request ID, remaining time, etc.)
-        
-    Returns:
-        dict: Standard HTTP response dictionary containing statusCode, headers, and JSON body.
     """
     logger.info(f"Received Lambda event: {json.dumps(event)}")
     
@@ -39,15 +36,19 @@ def lambda_handler(event: dict, context) -> dict:
         
     # Read environment variables
     environment = os.getenv("APP_ENV", "development")
-    s3_bucket = os.getenv("S3_BUCKET_NAME", "enterprise-rag-docs-default")
     
-    # Simulated processing logic (Pre-Bedrock integration)
+    # Invoke Amazon Bedrock Foundation Model
+    system_prompt = "You are a professional enterprise knowledge assistant. Answer the user's question clearly and concisely."
+    llm_result = llm_client.generate_response(prompt=question, system_prompt=system_prompt)
+    
     response_payload = {
         "status": "success",
         "environment": environment,
-        "bucket_configured": s3_bucket,
-        "received_question": question,
-        "message": f"Lambda received your question: '{question}'. Bedrock integration coming in Phase 6!"
+        "question": question,
+        "answer": llm_result.get("response_text", llm_result.get("fallback_response")),
+        "model_id": llm_result.get("model_id"),
+        "usage": llm_result.get("usage"),
+        "is_rag_grounded": False  # Explicitly marking that this endpoint is direct LLM inference (RAG coming in Phase 8/9!)
     }
     
     return {
