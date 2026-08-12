@@ -5,7 +5,7 @@ import os
 
 # Add src to path so we can import rag_handler
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-from src.lambda.rag_handler import lambda_handler
+from src.handlers.rag_handler import lambda_handler
 
 class APIGatewaySimulatorHandler(BaseHTTPRequestHandler):
     """
