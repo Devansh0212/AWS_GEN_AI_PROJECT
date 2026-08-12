@@ -43,7 +43,7 @@ This repository contains the step-by-step hands-on implementation of an **Enterp
 - [x] Phase 0: Cloud Fundamentals & GenAI Context
 - [x] Phase 1: AWS Account & Security Basics (IAM)
 - [x] Phase 2: S3 Document Storage
-- [ ] Phase 3: Lambda Functions
+- [x] Phase 3: Lambda Functions
 - [ ] Phase 4: API Gateway Integration
 - [ ] Phase 5: CloudWatch Observability
 - [ ] Phase 6: Amazon Bedrock Foundation Models
