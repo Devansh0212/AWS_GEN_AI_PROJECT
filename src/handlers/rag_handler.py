@@ -4,12 +4,12 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from src.utils.logger import get_logger
-from src.rag.bedrock_llm import BedrockLLM
+from src.rag.rag_engine import CustomRAGEngine
 
 logger = get_logger("rag_handler")
 
-# Instantiate Bedrock LLM wrapper
-llm_client = BedrockLLM()
+# Instantiate Custom RAG Engine
+rag_engine = CustomRAGEngine()
 
 def lambda_handler(event: dict, context) -> dict:
     """
@@ -37,18 +37,17 @@ def lambda_handler(event: dict, context) -> dict:
     # Read environment variables
     environment = os.getenv("APP_ENV", "development")
     
-    # Invoke Amazon Bedrock Foundation Model
-    system_prompt = "You are a professional enterprise knowledge assistant. Answer the user's question clearly and concisely."
-    llm_result = llm_client.generate_response(prompt=question, system_prompt=system_prompt)
+    # Execute Grounded RAG Query Pipeline
+    rag_result = rag_engine.query(question)
     
     response_payload = {
         "status": "success",
         "environment": environment,
         "question": question,
-        "answer": llm_result.get("response_text", llm_result.get("fallback_response")),
-        "model_id": llm_result.get("model_id"),
-        "usage": llm_result.get("usage"),
-        "is_rag_grounded": False  # Explicitly marking that this endpoint is direct LLM inference (RAG coming in Phase 8/9!)
+        "answer": rag_result.get("answer"),
+        "sources": rag_result.get("sources", []),
+        "retrieved_chunks_count": len(rag_result.get("retrieved_context", [])),
+        "is_rag_grounded": True
     }
     
     return {
