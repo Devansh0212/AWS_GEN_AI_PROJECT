@@ -16,7 +16,7 @@ class BedrockKnowledgeBase:
     """
     def __init__(
         self,
-        knowledge_base_id: str = "KB1234567890EXAMPLE",
+        knowledge_base_id: str = "KBA1B2C3D4",
         region_name: str = "us-east-1",
         model_arn: str = "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0"
     ):
