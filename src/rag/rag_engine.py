@@ -68,12 +68,19 @@ class CustomRAGEngine:
         else:
             logger.warning(f"Document path '{doc_path}' not found.")
 
-    def query(self, question: str) -> Dict:
+    def query(self, question: str, chat_history: Optional[List[Dict]] = None) -> Dict:
         """
-        Executes RAG pipeline: Retrieve relevant chunks -> Augment Prompt -> Generate Answer.
+        Executes RAG pipeline with Conversational Memory:
+        Retrieve context -> Append chat history -> Augment Prompt -> Generate Answer.
         """
         # 1. Retrieve top-k relevant document chunks
         retrieved_chunks = self.index.search(question, top_k=2)
+        
+        # 2. Format past conversation history
+        history_str = ""
+        if chat_history:
+            formatted_turns = [f"{turn.get('role', 'user').upper()}: {turn.get('content', '')}" for turn in chat_history]
+            history_str = "PAST CONVERSATION HISTORY:\n" + "\n".join(formatted_turns) + "\n\n"
         
         if not retrieved_chunks:
             logger.info("No relevant context found for question.")
@@ -81,10 +88,10 @@ class CustomRAGEngine:
         else:
             context_str = "\n\n".join([f"[Source: {c['doc_name']}]\n{c['text']}" for c in retrieved_chunks])
             
-        # 2. Construct Augmented RAG Prompt
-        augmented_prompt = f"""You are an Enterprise Knowledge Assistant. Answer the question strictly using the provided context documents below. If the answer cannot be found in the context, state clearly that the document does not contain that information.
+        # 3. Construct Augmented RAG Prompt with History
+        augmented_prompt = f"""You are an Enterprise Knowledge Assistant. Answer the question strictly using the provided context documents below and considering the past conversation history.
 
-CONTEXT DOCUMENTS:
+{history_str}CONTEXT DOCUMENTS:
 ===================
 {context_str}
 ===================
