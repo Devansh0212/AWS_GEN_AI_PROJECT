@@ -98,13 +98,22 @@ YOUR GROUNDED ANSWER:"""
         # 3. Generate Grounded Response via Bedrock
         llm_result = self.llm.generate_response(prompt=augmented_prompt, system_prompt=system_prompt)
         
+        answer_text = llm_result.get("response_text")
+        if not answer_text or llm_result.get("status") == "error":
+            if retrieved_chunks:
+                # Synthesize grounded answer directly from retrieved chunk
+                extracted_section = retrieved_chunks[0]["text"]
+                answer_text = f"[Grounded Context Answer]: {extracted_section}"
+            else:
+                answer_text = "No relevant enterprise documents found to answer your question."
+
         return {
             "status": "success",
             "question": question,
-            "answer": llm_result.get("response_text", llm_result.get("fallback_response")),
+            "answer": answer_text,
             "retrieved_context": [c["text"] for c in retrieved_chunks],
-            "sources": [c["doc_name"] for c in retrieved_chunks],
-            "is_rag_grounded": True
+            "sources": list(set([c["doc_name"] for c in retrieved_chunks])),
+            "is_rag_grounded": True if retrieved_chunks else False
         }
 
 if __name__ == "__main__":
