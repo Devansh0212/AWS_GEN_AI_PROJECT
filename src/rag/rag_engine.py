@@ -2,7 +2,7 @@ import os
 import sys
 import json
 import math
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from src.rag.document_loader import load_local_document
