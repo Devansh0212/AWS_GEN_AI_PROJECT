@@ -55,11 +55,12 @@ class SimpleVectorIndex:
 
 class CustomRAGEngine:
     """
-    Custom Retrieval-Augmented Generation (RAG) Engine.
+    Custom Retrieval-Augmented Generation (RAG) Engine with Bedrock Guardrails.
     """
     def __init__(self, doc_path: str = os.path.join("docs", "sample_vacation_policy.txt")):
         self.index = SimpleVectorIndex()
         self.llm = BedrockLLM()
+        self.guardrails = BedrockGuardrailValidator()
         
         # Load and ingest default document
         if os.path.exists(doc_path):
@@ -70,13 +71,26 @@ class CustomRAGEngine:
 
     def query(self, question: str, chat_history: Optional[List[Dict]] = None) -> Dict:
         """
-        Executes RAG pipeline with Conversational Memory:
-        Retrieve context -> Append chat history -> Augment Prompt -> Generate Answer.
+        Executes RAG pipeline with Guardrails & Conversational Memory:
+        Input Guardrail Check -> Retrieve Context -> Augment Prompt -> Generate -> Output Guardrail PII Redaction.
         """
-        # 1. Retrieve top-k relevant document chunks
+        # 1. INPUT GUARDRAIL CHECK (Before-hook)
+        input_check = self.guardrails.validate_input(question)
+        if not input_check["is_allowed"]:
+            return {
+                "status": "blocked_by_guardrail",
+                "question": question,
+                "answer": input_check["reason"],
+                "sources": [],
+                "retrieved_chunks_count": 0,
+                "is_rag_grounded": False,
+                "guardrail_action": "BLOCKED_INPUT"
+            }
+            
+        # 2. Retrieve top-k relevant document chunks
         retrieved_chunks = self.index.search(question, top_k=2)
         
-        # 2. Format past conversation history
+        # 3. Format past conversation history
         history_str = ""
         if chat_history:
             formatted_turns = [f"{turn.get('role', 'user').upper()}: {turn.get('content', '')}" for turn in chat_history]
@@ -88,7 +102,7 @@ class CustomRAGEngine:
         else:
             context_str = "\n\n".join([f"[Source: {c['doc_name']}]\n{c['text']}" for c in retrieved_chunks])
             
-        # 3. Construct Augmented RAG Prompt with History
+        # 4. Construct Augmented RAG Prompt with History
         augmented_prompt = f"""You are an Enterprise Knowledge Assistant. Answer the question strictly using the provided context documents below and considering the past conversation history.
 
 {history_str}CONTEXT DOCUMENTS:
@@ -102,25 +116,29 @@ YOUR GROUNDED ANSWER:"""
 
         system_prompt = "You are a precise, grounded enterprise assistant. Do not invent facts outside the provided document context."
         
-        # 3. Generate Grounded Response via Bedrock
+        # 5. Generate Grounded Response via Bedrock
         llm_result = self.llm.generate_response(prompt=augmented_prompt, system_prompt=system_prompt)
         
         answer_text = llm_result.get("response_text")
         if not answer_text or llm_result.get("status") == "error":
             if retrieved_chunks:
-                # Synthesize grounded answer directly from retrieved chunk
                 extracted_section = retrieved_chunks[0]["text"]
                 answer_text = f"[Grounded Context Answer]: {extracted_section}"
             else:
                 answer_text = "No relevant enterprise documents found to answer your question."
 
+        # 6. OUTPUT GUARDRAIL SANITIZATION (After-hook: PII Redaction)
+        output_check = self.guardrails.sanitize_output(answer_text)
+        final_answer = output_check["sanitized_text"]
+
         return {
             "status": "success",
             "question": question,
-            "answer": answer_text,
+            "answer": final_answer,
             "retrieved_context": [c["text"] for c in retrieved_chunks],
             "sources": list(set([c["doc_name"] for c in retrieved_chunks])),
-            "is_rag_grounded": True if retrieved_chunks else False
+            "is_rag_grounded": True if retrieved_chunks else False,
+            "has_pii_redactions": output_check["has_redactions"]
         }
 
 if __name__ == "__main__":
