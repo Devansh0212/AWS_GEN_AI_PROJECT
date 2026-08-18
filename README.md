@@ -52,7 +52,7 @@ This repository contains the step-by-step hands-on implementation of an **Enterp
 - [x] Phase 9: Bedrock Knowledge Bases & Vector Store
 - [x] Phase 10: Conversational Memory
 - [x] Phase 11: DynamoDB State Storage
-- [ ] Phase 12: Bedrock Guardrails
+- [x] Phase 12: Bedrock Guardrails
 - [ ] Phase 13: LangChain & LangGraph Integration
 - [ ] Phase 14: Agent Tools & Function Calling
 - [ ] Phase 15: Asynchronous Ingestion with SQS
