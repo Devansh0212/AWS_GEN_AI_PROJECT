@@ -7,6 +7,7 @@ from typing import List, Dict, Optional
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from src.rag.document_loader import load_local_document
 from src.rag.bedrock_llm import BedrockLLM
+from src.rag.guardrails import BedrockGuardrailValidator
 from src.utils.logger import get_logger
 
 logger = get_logger("rag_engine")
