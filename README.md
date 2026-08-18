@@ -56,7 +56,7 @@ This repository contains the step-by-step hands-on implementation of an **Enterp
 - [x] Phase 13: LangChain & LangGraph Integration
 - [x] Phase 14: Agent Tools & Function Calling
 - [x] Phase 15: Asynchronous Ingestion with SQS
-- [ ] Phase 16: EventBridge Event Processing
+- [x] Phase 16: EventBridge Event Processing
 - [ ] Phase 17: Step Functions Workflow Orchestration
 - [ ] Phase 18: VPC & Private Networking
 - [ ] Phase 19: Enterprise Security & Secrets Manager
