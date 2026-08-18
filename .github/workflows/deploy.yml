@@ -1,0 +1,50 @@
+name: Enterprise GenAI RAG CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ci-test-and-audit:
+    name: CI Unit Tests & IaC Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv Package Manager
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: Install Dependencies
+        run: uv sync
+
+      - name: Run CI Unit Tests & IaC Audit
+        run: |
+          uv run python src/utils/iac_validator.py
+          uv run python src/evals/rag_evaluator.py
+
+  cd-production-deploy:
+    name: CD AWS Production Canary Deploy
+    needs: ci-test-and-audit
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials via OIDC Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::866865535007:role/GitHubActionsEnterpriseDeployRole
+          aws-region: us-east-1
+
+      - name: Execute SAM Canary Deployment
+        run: |
+          python src/utils/cicd_pipeline.py
