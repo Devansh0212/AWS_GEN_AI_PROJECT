@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AWS Enterprise RAG & Conversational Knowledge Assistant
+  Infrastructure as Code (IaC) SAM Blueprint
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.12
+    Environment:
+      Variables:
+        APP_ENV: production
+        LOG_LEVEL: INFO
+        AWS_REGION_NAME: us-east-1
+
+Resources:
+  # 1. DynamoDB Table for Session Memory State
+  EnterpriseRagSessionsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: EnterpriseRagSessions
+      AttributeDefinitions:
+        - AttributeName: session_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: session_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+
+  # 2. S3 Bucket for Enterprise Document Storage
+  EnterpriseRagDocsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "enterprise-rag-docs-${AWS::AccountId}"
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  # 3. Serverless Lambda Function (RAG & LangGraph Orchestrator)
+  EnterpriseRagFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: EnterpriseRagHandler
+      CodeUri: .
+      Handler: src.handlers.rag_handler.lambda_handler
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref EnterpriseRagSessionsTable
+          S3_BUCKET_NAME: !Ref EnterpriseRagDocsBucket
+      Policies:
+        - AmazonBedrockFullAccess
+        - AmazonDynamoDBFullAccess
+        - AmazonS3FullAccess
+      Events:
+        AskApiEvent:
+          Type: HttpApi
+          Properties:
+            Path: /ask
+            Method: post
+
+Outputs:
+  HttpApiUrl:
+    Description: "Production HTTP API Gateway Endpoint URL"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/ask"
+  LambdaFunctionName:
+    Description: "Deployed Lambda Function Name"
+    Value: !Ref EnterpriseRagFunction
+  DynamoDBTableName:
+    Description: "Session Memory DynamoDB Table Name"
+    Value: !Ref EnterpriseRagSessionsTable
