@@ -58,7 +58,7 @@ This repository contains the step-by-step hands-on implementation of an **Enterp
 - [x] Phase 15: Asynchronous Ingestion with SQS
 - [x] Phase 16: EventBridge Event Processing
 - [x] Phase 17: Step Functions Workflow Orchestration
-- [ ] Phase 18: VPC & Private Networking
+- [x] Phase 18: VPC & Private Networking
 - [ ] Phase 19: Enterprise Security & Secrets Manager
 - [ ] Phase 20: Comprehensive Observability
 - [ ] Phase 21: LLM Evaluation Framework
