@@ -4,13 +4,13 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from src.utils.logger import get_logger
-from src.rag.rag_engine import CustomRAGEngine
+from src.agent.langgraph_agent import LangGraphRAGAgent
 from src.rag.session_memory import DynamoDBSessionMemory
 
 logger = get_logger("rag_handler")
 
-# Instantiate Custom RAG Engine and Session Memory
-rag_engine = CustomRAGEngine()
+# Instantiate LangGraph Agent and DynamoDB Session Memory
+agent = LangGraphRAGAgent()
 session_memory = DynamoDBSessionMemory()
 
 def lambda_handler(event: dict, context) -> dict:
@@ -43,22 +43,24 @@ def lambda_handler(event: dict, context) -> dict:
     # 1. Fetch Session History from DynamoDB
     history = session_memory.get_history(session_id)
     
-    # 2. Execute Grounded RAG Query Pipeline with History
-    rag_result = rag_engine.query(question, chat_history=history)
-    answer = rag_result.get("answer", "")
+    # 2. Execute Stateful LangGraph Agent Machine
+    agent_result = agent.run(question, session_id=session_id)
+    answer = agent_result.get("answer", "")
     
-    # 3. Save new turn to DynamoDB Session Memory
-    session_memory.add_turn(session_id=session_id, user_query=question, assistant_response=answer)
+    # 3. Save new turn to DynamoDB Session Memory if not blocked
+    if agent_result.get("status") != "blocked_by_guardrail":
+        session_memory.add_turn(session_id=session_id, user_query=question, assistant_response=answer)
     
     response_payload = {
-        "status": "success",
+        "status": agent_result.get("status", "success"),
         "environment": environment,
         "session_id": session_id,
         "question": question,
         "answer": answer,
-        "sources": rag_result.get("sources", []),
+        "sources": agent_result.get("sources", []),
         "history_turns_count": len(history) // 2,
-        "is_rag_grounded": True
+        "is_rag_grounded": agent_result.get("is_rag_grounded", False),
+        "orchestrator": "LangGraph"
     }
     
     return {
