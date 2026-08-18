@@ -9,6 +9,21 @@ from src.utils.logger import get_logger
 
 logger = get_logger("iac_validator")
 
+def cfn_tag_constructor(loader, node):
+    if isinstance(node, yaml.ScalarNode):
+        return loader.construct_scalar(node)
+    elif isinstance(node, yaml.SequenceNode):
+        return loader.construct_sequence(node)
+    elif isinstance(node, yaml.MappingNode):
+        return loader.construct_mapping(node)
+    return ""
+
+yaml.SafeLoader.add_constructor("!Sub", cfn_tag_constructor)
+yaml.SafeLoader.add_constructor("!Ref", cfn_tag_constructor)
+yaml.SafeLoader.add_constructor("!GetAtt", cfn_tag_constructor)
+yaml.SafeLoader.add_constructor("!Join", cfn_tag_constructor)
+yaml.SafeLoader.add_constructor("!FindInMap", cfn_tag_constructor)
+
 class SAMInfrastructureValidator:
     """
     Validates AWS SAM (Serverless Application Model) template.yaml IaC blueprint.
